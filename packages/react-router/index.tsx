@@ -349,7 +349,7 @@ export function Routes({
  *
  * @see https://reactrouter.com/docs/en/v6/api#usehref
  */
-export function useHref(to: To): string {
+export function useHref(to: To, disableBasename?: boolean): string {
   invariant(
     useInRouterContext(),
     // TODO: This error is probably because they somehow have 2 versions of the
@@ -361,6 +361,9 @@ export function useHref(to: To): string {
   let { hash, pathname, search } = useResolvedPath(to);
 
   let joinedPathname = pathname;
+  if (disableBasename) {
+    basename = "/";
+  }
   if (basename !== "/") {
     let toPathname = getToPathname(to);
     let endsWithSlash = toPathname != null && toPathname.endsWith("/");
@@ -493,6 +496,7 @@ export interface NavigateFunction {
 }
 
 export interface NavigateOptions {
+  disableBasename?: boolean;
   replace?: boolean;
   state?: any;
 }
@@ -545,7 +549,7 @@ export function useNavigate(): NavigateFunction {
         locationPathname
       );
 
-      if (basename !== "/") {
+      if (!options.disableBasename && basename !== "/") {
         path.pathname = joinPaths([basename, path.pathname]);
       }
 

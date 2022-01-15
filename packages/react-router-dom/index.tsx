@@ -242,6 +242,7 @@ export interface LinkProps
   reloadDocument?: boolean;
   replace?: boolean;
   state?: any;
+  disableBasename?: boolean;
   to: To;
 }
 
@@ -250,11 +251,25 @@ export interface LinkProps
  */
 export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
   function LinkWithRef(
-    { onClick, reloadDocument, replace = false, state, target, to, ...rest },
+    {
+      onClick,
+      reloadDocument,
+      replace = false,
+      state,
+      target,
+      to,
+      disableBasename,
+      ...rest
+    },
     ref
   ) {
-    let href = useHref(to);
-    let internalOnClick = useLinkClickHandler(to, { replace, state, target });
+    let href = useHref(to, disableBasename);
+    let internalOnClick = useLinkClickHandler(to, {
+      disableBasename,
+      replace,
+      state,
+      target
+    });
     function handleClick(
       event: React.MouseEvent<HTMLAnchorElement, MouseEvent>
     ) {
@@ -377,10 +392,12 @@ if (__DEV__) {
 export function useLinkClickHandler<E extends Element = HTMLAnchorElement>(
   to: To,
   {
+    disableBasename,
     target,
     replace: replaceProp,
     state
   }: {
+    disableBasename?: boolean;
     target?: React.HTMLAttributeAnchorTarget;
     replace?: boolean;
     state?: any;
@@ -389,7 +406,6 @@ export function useLinkClickHandler<E extends Element = HTMLAnchorElement>(
   let navigate = useNavigate();
   let location = useLocation();
   let path = useResolvedPath(to);
-
   return React.useCallback(
     (event: React.MouseEvent<E, MouseEvent>) => {
       if (
@@ -404,7 +420,7 @@ export function useLinkClickHandler<E extends Element = HTMLAnchorElement>(
         let replace =
           !!replaceProp || createPath(location) === createPath(path);
 
-        navigate(to, { replace, state });
+        navigate(to, { disableBasename, replace, state });
       }
     },
     [location, navigate, path, replaceProp, state, target, to]
